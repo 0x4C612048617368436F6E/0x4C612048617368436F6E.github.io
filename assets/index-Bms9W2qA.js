@@ -41,7 +41,6 @@
 
   `,E=`
 <section class="welcome">
-<img class="img-about" src="/static/about.png" alt="about"/>
 <p>
   I am <strong>0x4C612048617368436F6E</strong>, a highly curious and driven learner with a strong and continuously developing passion for <strong>cybersecurity</strong>.</p>
 
