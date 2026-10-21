@@ -1,4 +1,4 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))a(i);new MutationObserver(i=>{for(const r of i)if(r.type==="childList")for(const d of r.addedNodes)d.tagName==="LINK"&&d.rel==="modulepreload"&&a(d)}).observe(document,{childList:!0,subtree:!0});function o(i){const r={};return i.integrity&&(r.integrity=i.integrity),i.referrerPolicy&&(r.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?r.credentials="include":i.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function a(i){if(i.ep)return;i.ep=!0;const r=o(i);fetch(i.href,r)}})();const v=`
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))a(o);new MutationObserver(o=>{for(const r of o)if(r.type==="childList")for(const d of r.addedNodes)d.tagName==="LINK"&&d.rel==="modulepreload"&&a(d)}).observe(document,{childList:!0,subtree:!0});function i(o){const r={};return o.integrity&&(r.integrity=o.integrity),o.referrerPolicy&&(r.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?r.credentials="include":o.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function a(o){if(o.ep)return;o.ep=!0;const r=i(o);fetch(o.href,r)}})();const v=`
 <section class="welcome">
 
 <h2>Hello cybersecurity enthusiasts, and hackers</h2>
@@ -51,7 +51,7 @@
 
 </p>
 </section>
-`,C=`
+`,O=`
 <pre class="pgp">
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 mQGNBGrQBCIBDACocnL+sU64Y1/6TP9KjFqd35LZ4qkhCLyw5GIwaChhd8U6rerd
@@ -429,20 +429,75 @@ Below is an example of what the current stack frame of an executing function loo
       help us investigate the resulting memory corruption.
     </p>
 
-    <h1>What is Easy RM to MP3 converter</h3>
-    <h1>Fuzz testing</h1>
-</section>`,T=t=>{let o=t.split(" ").length;return console.log(o),Math.trunc(o/200)},h=(t,e,o)=>`
+    <h2>What is Easy RM to MP3 converter</h2>
+    <p>
+      Easy RM to MP3 Converter is a Windows application designed to
+      convert audio files from RealNetworks formats, such as RealMedia,
+      into the more widely supported MP3 format. The application was
+      intended to help users convert legacy audio files into a format
+      compatible with a broader range of media players and devices.
+    </p>
+
+    <p>
+      In this article, the application serves as the target for
+      investigating a local stack based buffer overflow. The objective
+      is to understand how malformed input can trigger unexpected
+      application behaviour and how debugging tools can help identify
+      the underlying cause.
+    </p>
+
+
+    <h2>Fuzz testing</h2>
+    <p>
+      In addition to its core audio conversion functionality, Easy RM
+      to MP3 Converter supports playlist files, including formats such
+      as .m3u/.py. A playlist typically contains references to
+      media files rather than the actual audio data itself. Depending
+      on the format, it may contain file paths, URLs, or other
+      information used by a media player to locate the relevant content.
+    </p>
+
+    <p>
+      To investigate how the application handles playlist input, I
+      used a technique known as <strong>fuzzing</strong>. Fuzzing
+      involves supplying a program with automatically generated,
+      malformed, or otherwise unexpected input and monitoring its
+      behaviour for errors, crashes, or other abnormal conditions.
+    </p>
+    <p>
+      When the application receives valid input, it should process that
+      input as expected. When it encounters invalid or malformed input,
+      it should reject the input or handle the error gracefully. For instance: </p>
+      <img class="fuzz_valid" src="/static/stackBufferOverflowWithEipOverwrite/fuzz_with_valid_input.png" />
+      <img class="fuzz_valid" src="/static/stackBufferOverflowWithEipOverwrite/fuzz_with_valid_input_result_handled_gracefully.png" alt="Fuzz with valid input result handled gracefully"/>
+      However, unsafe memory handling
+      can cause unexpected behaviour, including application crashes.
+      </p>
+
+      <p>
+      During testing, I used malformed playlist input to examine how
+      Easy RM to MP3 Converter responded to unexpected data. The
+      resulting crash provided an initial indication that the
+      application might contain a bug worth investigating further.
+      <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/fuzz_with_invalid_input.png" />
+      <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/fuzz_with_invalid_input_result_handled_ungracefully.png" alt="Fuzz with valid input result handled gracefully"/>
+
+      <h2>Fuzzing</h2>
+
+    </p>
+
+</section>`,T=t=>{let i=t.split(" ").length;return console.log(i),Math.trunc(i/200)},h=(t,e,i)=>`
     <div>
         <h3 class="title">${t}</h3>
         <div class="clock-style">
             <img class="clock" src=${e} alt="Read Time"/>
-            <span class="read-time">${T(o)} minutes read</span>
+            <span class="read-time">${T(i)} minutes read</span>
         </div>
         <div>
-            ${o}
+            ${i}
         </div>
     </div>
-  `;class c{route;rootRoute="/";ethicalHackingNotesRoute="/ethical-hacking-notes";networkingBasicsRoute="/networking-basics";reverseEngineeringRoute="/reverse-engineering";welcomeToMyCyberSecurityPathRoute="/welcome-to-my-cybersecurity";aboutRoute="/about";pgpRoute="/pgp";stackBufferOverflowRoute="/stack-buffer-overflow";strlenInCRoute="/strlenInC";instagramReelDownloaderRoute="/instagramReelDownloader";stackBufferOverFlowWithEIPOverwrite="/stackBufferOverFlowWithEIPOverwrite";constructor(e){this.route=e}navigateTo(){if(history.pushState({},"",this.route),this.route==this.rootRoute){document.getElementById("remove-post-if-not-on-route").style.display="block",document.getElementById("filter-hide").style.display="flex",document.getElementById("search").style.display="flex",document.getElementById("post").innerHTML=y();return}if(!(this.route==this.ethicalHackingNotesRoute&&window.location.pathname==this.route)&&!(this.route==this.networkingBasicsRoute&&window.location.pathname==this.route)&&!(this.route==this.reverseEngineeringRoute&&window.location.pathname==this.route)){if(this.route==this.welcomeToMyCyberSecurityPathRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,v);break}return}if(this.route==this.aboutRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=E;return}if(this.route==this.pgpRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=C;return}if(this.route==this.stackBufferOverflowRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,b);break}return}if(this.route==this.strlenInCRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,k);break}return}if(this.route==this.instagramReelDownloaderRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,I);break}return}if(this.route==this.stackBufferOverFlowWithEIPOverwrite&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,B);break}return}}}}const u=new c("/"),L=new c("/ethical-hacking-notes"),O=new c("/networking-basics"),R=new c("/reverse-engineering"),x=new c("/welcome-to-my-cybersecurity"),S=new c("/about"),P=new c("/pgp"),A=new c("/stack-buffer-overflow"),H=new c("/strlenInC"),M=new c("/instagramReelDownloader"),F=new c("/stackBufferOverFlowWithEIPOverwrite"),l={userName:"Fallen Saint",description:"Software Engineer, Red-Team, Security Enginner",profile:"/assets/userprofile.jpeg",location:"UK",locationImage:"/assets/pin.png",bitcoinAddress:"bc1quw479na2ld27rrlkpc0cxutcszddp5nva3ev0n",bitcoinAddressImage:"/assets/bitcoin.png",discord:"lahashcon",discordImage:"/assets/discord.png",post:"Posts",navigationList:[{title:"about",route:"/about"},{title:"PGP",route:"/pgp"}]},p={filter:{filter:"Filter",sort:["newest","oldest"]}},n=[{title:"Stack based buffer OverFlow with EIP overwrite",description:"Understanding stack based buffer overflow properly with a vulnerable application",keyword:"Windows XP, Stack Buffer Overflow, x86, Assembly",date:new Date("October 20 2026 22:17:40"),clockImage:"/assets/clock.png",route:"stackBufferOverFlowWithEIPOverwrite",content:B},{title:"Instagram Reels Downloader",description:"Tool to donwload instagram reels without the embedded watermark",keyword:"NodeJS, JavaScript, Instagram, ",date:new Date("September 20 2026 19:01:07"),clockImage:"/assets/clock.png",route:"instagramReelDownloader",content:I},{title:"strlen() function",description:"Implementing the strlen() function in C",keyword:"strlen(), string, function",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"strlenInC",content:k},{title:"StackBuffer Overflow",description:"Comphrensive detail about StackBuffer Overflow",keyword:"StackBuffer, Overflow",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"stack-buffer-overflow",content:b},{title:"Welcome to my CyberSecurity Path",description:"An introduction to my CyberSecurity Path",keyword:"CyberSecurity, Malware, Networking",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"welcome-to-my-cybersecurity",content:v}],s=[{title:"Ethical Hacking Notes",variable:L},{title:"Networking Basics",variable:O},{title:"Reverse Engineering",variable:R},{title:"Welcome to my CyberSecurity Path",variable:x},{title:"StackBuffer Overflow",variable:A},{title:"strlen() function",variable:H},{title:"Instagram Reels Downloader",variable:M},{title:"Stack based buffer OverFlow with EIP overwrite",variable:F}],m=[{title:"about",variable:S},{title:"PGP",variable:P}],y=(t=n)=>`
+  `;class c{route;rootRoute="/";ethicalHackingNotesRoute="/ethical-hacking-notes";networkingBasicsRoute="/networking-basics";reverseEngineeringRoute="/reverse-engineering";welcomeToMyCyberSecurityPathRoute="/welcome-to-my-cybersecurity";aboutRoute="/about";pgpRoute="/pgp";stackBufferOverflowRoute="/stack-buffer-overflow";strlenInCRoute="/strlenInC";instagramReelDownloaderRoute="/instagramReelDownloader";stackBufferOverFlowWithEIPOverwrite="/stackBufferOverFlowWithEIPOverwrite";constructor(e){this.route=e}navigateTo(){if(history.pushState({},"",this.route),this.route==this.rootRoute){document.getElementById("remove-post-if-not-on-route").style.display="block",document.getElementById("filter-hide").style.display="flex",document.getElementById("search").style.display="flex",document.getElementById("post").innerHTML=y();return}if(!(this.route==this.ethicalHackingNotesRoute&&window.location.pathname==this.route)&&!(this.route==this.networkingBasicsRoute&&window.location.pathname==this.route)&&!(this.route==this.reverseEngineeringRoute&&window.location.pathname==this.route)){if(this.route==this.welcomeToMyCyberSecurityPathRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,v);break}return}if(this.route==this.aboutRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=E;return}if(this.route==this.pgpRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=O;return}if(this.route==this.stackBufferOverflowRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,b);break}return}if(this.route==this.strlenInCRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,k);break}return}if(this.route==this.instagramReelDownloaderRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,I);break}return}if(this.route==this.stackBufferOverFlowWithEIPOverwrite&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,B);break}return}}}}const u=new c("/"),C=new c("/ethical-hacking-notes"),R=new c("/networking-basics"),x=new c("/reverse-engineering"),L=new c("/welcome-to-my-cybersecurity"),P=new c("/about"),S=new c("/pgp"),A=new c("/stack-buffer-overflow"),M=new c("/strlenInC"),H=new c("/instagramReelDownloader"),F=new c("/stackBufferOverFlowWithEIPOverwrite"),l={userName:"Fallen Saint",description:"Software Engineer, Red-Team, Security Enginner",profile:"/assets/userprofile.jpeg",location:"UK",locationImage:"/assets/pin.png",bitcoinAddress:"bc1quw479na2ld27rrlkpc0cxutcszddp5nva3ev0n",bitcoinAddressImage:"/assets/bitcoin.png",discord:"lahashcon",discordImage:"/assets/discord.png",post:"Posts",navigationList:[{title:"about",route:"/about"},{title:"PGP",route:"/pgp"}]},p={filter:{filter:"Filter",sort:["newest","oldest"]}},n=[{title:"Stack based buffer OverFlow with EIP overwrite",description:"Understanding stack based buffer overflow properly with a vulnerable application",keyword:"Windows XP, Stack Buffer Overflow, x86, Assembly",date:new Date("October 20 2026 22:17:40"),clockImage:"/assets/clock.png",route:"stackBufferOverFlowWithEIPOverwrite",content:B},{title:"Instagram Reels Downloader",description:"Tool to donwload instagram reels without the embedded watermark",keyword:"NodeJS, JavaScript, Instagram, ",date:new Date("September 20 2026 19:01:07"),clockImage:"/assets/clock.png",route:"instagramReelDownloader",content:I},{title:"strlen() function",description:"Implementing the strlen() function in C",keyword:"strlen(), string, function",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"strlenInC",content:k},{title:"StackBuffer Overflow",description:"Comphrensive detail about StackBuffer Overflow",keyword:"StackBuffer, Overflow",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"stack-buffer-overflow",content:b},{title:"Welcome to my CyberSecurity Path",description:"An introduction to my CyberSecurity Path",keyword:"CyberSecurity, Malware, Networking",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"welcome-to-my-cybersecurity",content:v}],s=[{title:"Ethical Hacking Notes",variable:C},{title:"Networking Basics",variable:R},{title:"Reverse Engineering",variable:x},{title:"Welcome to my CyberSecurity Path",variable:L},{title:"StackBuffer Overflow",variable:A},{title:"strlen() function",variable:M},{title:"Instagram Reels Downloader",variable:H},{title:"Stack based buffer OverFlow with EIP overwrite",variable:F}],m=[{title:"about",variable:P},{title:"PGP",variable:S}],y=(t=n)=>`
     ${t.map(e=>`
             <div class="repo">
                 <h3 class="title">${e.title}</h3>
@@ -455,7 +510,7 @@ Below is an example of what the current stack frame of an executing function loo
                 <span class="date">${e.date}</span>
             </div>
         `).join("")}
-    `,j=(t,e)=>{e=="oldest"&&(t=t.sort((a,i)=>a.date?.getTime()-i.date?.getTime())),e=="newest"&&(t=t.sort((a,i)=>i.date?.getTime()-a.date?.getTime())),document.getElementById("post").innerHTML=y();const o=document.querySelectorAll(".title");for(let a=0;a<o.length;a++)for(let i=0;i<n.length;i++)if(o[a].innerHTML==n[i].title){o[a].addEventListener("click",()=>{for(let r=0;r<s.length;r++)if(n[i].title==s[r].title){s[r].variable.navigateTo();break}});break}};let g;const W=(t,e)=>{g&&clearTimeout(g),g=setTimeout(()=>{let o=e.filter(a=>{if(a.title?.toLowerCase()?.search(t.toLowerCase())>=0||a.description?.toLowerCase()?.search(t.toLowerCase())>=0||a.keyword?.toLowerCase()?.search(t.toLowerCase())>=0||a.date?.toString().toLowerCase()?.search(t.toLowerCase())>=0)return a});if(o.length==0)document.getElementById("post").innerHTML="<h1>No Results Found</h1>";else{document.getElementById("post").innerHTML=y(o);const a=document.querySelectorAll(".title");console.log(a);for(let i=0;i<a.length;i++)for(let r=0;r<n.length;r++)if(a[i].innerHTML==n[r].title){a[i].addEventListener("click",()=>{for(let d=0;d<s.length;d++)if(n[r].title==s[d].title){s[d].variable.navigateTo();break}});break}}},250)},q=()=>`
+    `,W=(t,e)=>{e=="oldest"&&(t=t.sort((a,o)=>a.date?.getTime()-o.date?.getTime())),e=="newest"&&(t=t.sort((a,o)=>o.date?.getTime()-a.date?.getTime())),document.getElementById("post").innerHTML=y();const i=document.querySelectorAll(".title");for(let a=0;a<i.length;a++)for(let o=0;o<n.length;o++)if(i[a].innerHTML==n[o].title){i[a].addEventListener("click",()=>{for(let r=0;r<s.length;r++)if(n[o].title==s[r].title){s[r].variable.navigateTo();break}});break}};let g;const j=(t,e)=>{g&&clearTimeout(g),g=setTimeout(()=>{let i=e.filter(a=>{if(a.title?.toLowerCase()?.search(t.toLowerCase())>=0||a.description?.toLowerCase()?.search(t.toLowerCase())>=0||a.keyword?.toLowerCase()?.search(t.toLowerCase())>=0||a.date?.toString().toLowerCase()?.search(t.toLowerCase())>=0)return a});if(i.length==0)document.getElementById("post").innerHTML="<h1>No Results Found</h1>";else{document.getElementById("post").innerHTML=y(i);const a=document.querySelectorAll(".title");console.log(a);for(let o=0;o<a.length;o++)for(let r=0;r<n.length;r++)if(a[o].innerHTML==n[r].title){a[o].addEventListener("click",()=>{for(let d=0;d<s.length;d++)if(n[r].title==s[d].title){s[d].variable.navigateTo();break}});break}}},250)},z=()=>`
     <header class="navbar">
         <div class="nav-left">
             <span class="logo">${l.userName}</span>
@@ -470,7 +525,7 @@ Below is an example of what the current stack frame of an executing function loo
             </div>
         </div>
     </header>
-`,D=()=>`
+`,q=()=>`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -481,7 +536,7 @@ Below is an example of what the current stack frame of an executing function loo
 <body>
 
     <!-- Top Navigation Bar -->
-    ${q()}
+    ${z()}
 
     <!-- Main Layout -->
     <main class="container">
@@ -546,4 +601,4 @@ Below is an example of what the current stack frame of an executing function loo
 </body>
 </html>
 
-`;document.querySelector("#app").innerHTML=D();u.navigateTo();document.getElementById("filter")?.addEventListener("change",t=>{const e=t.target;j(n,e.value)});document.getElementById("search")?.addEventListener("input",t=>{console.log("Change");const e=t.target;W(e.value,n)});document.querySelector(".discord-style").addEventListener("click",()=>{window.open("https://discord.com/channels/@me","_blank")});const f=document.querySelectorAll(".nav-item");for(let t=0;t<f.length;t++)for(let e=0;e<l.navigationList.length;e++)if(f[t].innerHTML==l.navigationList[e].title){f[t].addEventListener("click",()=>{for(let o=0;o<m.length;o++)if(l.navigationList[e].title==m[o].title){m[o].variable.navigateTo();break}});break}document.querySelector(".logo")?.addEventListener("click",()=>{u.navigateTo();const t=document.querySelectorAll(".title");for(let e=0;e<t.length;e++)for(let o=0;o<n.length;o++)if(t[e].innerHTML==n[o].title){t[e].addEventListener("click",()=>{for(let a=0;a<s.length;a++)if(n[o].title==s[a].title){s[a].variable.navigateTo();break}});break}});window.addEventListener("popstate",()=>{window.location.pathname=="/"&&u.navigateTo();for(let t=0;t<n.length;t++){if(window.location.pathname=="/"){u.navigateTo();const e=document.querySelectorAll(".title");for(let o=0;o<e.length;o++)for(let a=0;a<n.length;a++)if(e[o].innerHTML==n[a].title){e[o].addEventListener("click",()=>{for(let i=0;i<s.length;i++)if(n[a].title==s[i].title){s[i].variable.navigateTo();break}});break}}else if(window.location.pathname=="/".concat(n[t].route)){for(let e=0;e<s.length;e++)if(n[t].title==s[e].title){s[e].variable.navigateTo();break}}break}});const w=document.querySelectorAll(".title");for(let t=0;t<w.length;t++)for(let e=0;e<n.length;e++)if(w[t].innerHTML==n[e].title){w[t].addEventListener("click",()=>{for(let o=0;o<s.length;o++)if(n[e].title==s[o].title){s[o].variable.navigateTo();break}});break}
+`;document.querySelector("#app").innerHTML=q();u.navigateTo();document.getElementById("filter")?.addEventListener("change",t=>{const e=t.target;W(n,e.value)});document.getElementById("search")?.addEventListener("input",t=>{console.log("Change");const e=t.target;j(e.value,n)});document.querySelector(".discord-style").addEventListener("click",()=>{window.open("https://discord.com/channels/@me","_blank")});const f=document.querySelectorAll(".nav-item");for(let t=0;t<f.length;t++)for(let e=0;e<l.navigationList.length;e++)if(f[t].innerHTML==l.navigationList[e].title){f[t].addEventListener("click",()=>{for(let i=0;i<m.length;i++)if(l.navigationList[e].title==m[i].title){m[i].variable.navigateTo();break}});break}document.querySelector(".logo")?.addEventListener("click",()=>{u.navigateTo();const t=document.querySelectorAll(".title");for(let e=0;e<t.length;e++)for(let i=0;i<n.length;i++)if(t[e].innerHTML==n[i].title){t[e].addEventListener("click",()=>{for(let a=0;a<s.length;a++)if(n[i].title==s[a].title){s[a].variable.navigateTo();break}});break}});window.addEventListener("popstate",()=>{window.location.pathname=="/"&&u.navigateTo();for(let t=0;t<n.length;t++){if(window.location.pathname=="/"){u.navigateTo();const e=document.querySelectorAll(".title");for(let i=0;i<e.length;i++)for(let a=0;a<n.length;a++)if(e[i].innerHTML==n[a].title){e[i].addEventListener("click",()=>{for(let o=0;o<s.length;o++)if(n[a].title==s[o].title){s[o].variable.navigateTo();break}});break}}else if(window.location.pathname=="/".concat(n[t].route)){for(let e=0;e<s.length;e++)if(n[t].title==s[e].title){s[e].variable.navigateTo();break}}break}});const w=document.querySelectorAll(".title");for(let t=0;t<w.length;t++)for(let e=0;e<n.length;e++)if(w[t].innerHTML==n[e].title){w[t].addEventListener("click",()=>{for(let i=0;i<s.length;i++)if(n[e].title==s[i].title){s[i].variable.navigateTo();break}});break}
