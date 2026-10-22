@@ -1,4 +1,4 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))a(o);new MutationObserver(o=>{for(const r of o)if(r.type==="childList")for(const d of r.addedNodes)d.tagName==="LINK"&&d.rel==="modulepreload"&&a(d)}).observe(document,{childList:!0,subtree:!0});function i(o){const r={};return o.integrity&&(r.integrity=o.integrity),o.referrerPolicy&&(r.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?r.credentials="include":o.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function a(o){if(o.ep)return;o.ep=!0;const r=i(o);fetch(o.href,r)}})();const v=`
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const a of document.querySelectorAll('link[rel="modulepreload"]'))o(a);new MutationObserver(a=>{for(const r of a)if(r.type==="childList")for(const d of r.addedNodes)d.tagName==="LINK"&&d.rel==="modulepreload"&&o(d)}).observe(document,{childList:!0,subtree:!0});function n(a){const r={};return a.integrity&&(r.integrity=a.integrity),a.referrerPolicy&&(r.referrerPolicy=a.referrerPolicy),a.crossOrigin==="use-credentials"?r.credentials="include":a.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function o(a){if(a.ep)return;a.ep=!0;const r=n(a);fetch(a.href,r)}})();const y=`
 <section class="welcome">
 
 <h2>Hello cybersecurity enthusiasts, and hackers</h2>
@@ -39,7 +39,7 @@
     you’re in the right place.</p>
 </section>
 
-  `,E=`
+  `,B=`
 <section class="welcome">
 <p>
   I am <strong>0x4C612048617368436F6E</strong>, a highly curious and driven learner with a strong and continuously developing passion for <strong>cybersecurity</strong>.</p>
@@ -51,7 +51,7 @@
 
 </p>
 </section>
-`,O=`
+`,x=`
 <pre class="pgp">
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 mQGNBGrQBCIBDACocnL+sU64Y1/6TP9KjFqd35LZ4qkhCLyw5GIwaChhd8U6rerd
@@ -302,7 +302,7 @@ Below is an example of what the current stack frame of an executing function loo
 <p>That was ultimately the main value of this project. The downloader itself was the end result, but the process of understanding how the system worked, reverse engineering its behaviour, and then building something around that understanding was where I learned the most.</p>
 
 </section>
-`,B=`<section class="welcome">
+`,E=`<section class="welcome">
 
     <h2>Introduction</h2>
 
@@ -479,25 +479,145 @@ Below is an example of what the current stack frame of an executing function loo
       Easy RM to MP3 Converter responded to unexpected data. The
       resulting crash provided an initial indication that the
       application might contain a bug worth investigating further.
+      </p>
       <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/fuzz_with_invalid_input.png" />
       <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/fuzz_with_invalid_input_result_handled_ungracefully.png" alt="Fuzz with valid input result handled gracefully"/>
 
-      <h2>Fuzzing</h2>
+      <p>
+    After reproducing the crash, I used Immunity Debugger to examine
+    the application's state and investigate whether the unexpected
+    behaviour was caused by a memory corruption vulnerability.
+  </p>
+  <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/eip_overwritten.png" alt="EIP corrupt"/>
 
-    </p>
+  <p>
+    As shown in the image above, the EIP (Extended
+    Instruction Pointer) register has been overwritten with data
+    supplied through our input. On 32-bit x86 systems, EIP holds the
+    address of the next instruction the processor is due to execute.
+    Observing attacker controlled input in this register indicates
+    that the overflow has affected the program's control flow state.
 
-</section>`,T=t=>{let i=t.split(" ").length;return console.log(i),Math.trunc(i/200)},h=(t,e,i)=>`
+    This is a significant finding because it suggests that the
+    corruption extends beyond the application's input buffer and
+    affect the address used to determine subsequent execution. The
+    next step is to investigate the extent of the overwrite and
+    determine whether the instruction pointer can be controlled
+    reliably.
+
+    If control of EIP can be demonstrated, the vulnerability may
+    provide a means of redirecting execution to a different address.
+    Establishing this requires further analysis of the input offset,
+    the relevant memory layout, and the instructions available at
+    potential target addresses.
+  </p>
+
+  <p>
+    The next step was to determine the exact offset at which the
+    input overwrote the EIP register. Identifying this
+    offset is important because it establishes how many bytes of input
+    are required before the instruction pointer is affected.
+    To simplify this process, I used the pattern-generation utilities
+    from the Metasploit Framework. Specifically, I used
+    pattern_create.rb to generate a sequence of unique
+    values that could be supplied to the vulnerable application.
+    Unlike a string consisting of repeated characters, a unique
+    pattern makes it possible to identify the position of the
+    overwritten value within the original input.
+  </p>
+  <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/pattern_create.png"/>
+
+  <p>
+    After triggering the crash with the generated pattern, I examined
+    the value found in EIP. This information could then
+    be used with the corresponding pattern offset utility to calculate
+    the precise offset at which the overwrite occurred.
+  </p>
+  <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/pattern_create_debugger.png"/>
+  
+  <p>
+    Examining the debugger output above, we can see that the
+    EIP register has been overwritten with the value
+    5Bj6. This provides further evidence that data
+    supplied through our input has reached the instruction pointer,
+    allowing us to investigate the extent of the control-flow
+    corruption.
+    Another important observation is the relationship between
+    ESP (Extended Stack Pointer) and the overwritten
+    instruction pointer. On this 32-bit x86 target, the stack pointer
+    identifies the current top of the stack. In the observed register
+    and memory state, the location indicated by <code>ESP</code> is
+    close to the data associated with the overwritten EIP (with 4 Bytes).
+  </p>
+
+  <p>
+    With the overwritten value identified, the next step is to
+    determine its exact position within the input. To do this, I used
+    Metasploit's pattern_offset.rb utility to locate the
+    value within the previously generated unique pattern and calculate
+    the precise offset at which the overwrite occurs.
+    Once the offset has been established, I can verify the result by
+    supplying a test input structured to place a known value at the
+    position that overwrites EIP
+  </p>
+  <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/arbitrary_register_overwrite_code.png"/>
+
+  <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/arbitrary_register_overwrite.png" />
+
+
+    <p>
+    At this stage, I have successfully overwritten both
+    EIP and the data visible through ESP
+    with values influenced by our input. This demonstrates that the
+    application is vulnerable to memory corruption and gives us a
+    starting point for investigating whether execution can be
+    redirected reliably.
+    To keep the scope of this article focused, the next objective is
+    to identify a suitable instruction address that could redirect
+    execution to a controlled region of memory, such as the stack.
+    The current value of ESP can help us understand where that data resides following the crash. However, we must verify the memory layout and determine whether
+    the relevant address remains reliable between executions.
+    One complication when working with 32-bit x86 addresses is the
+    processor's use of little-endian byte order.
+    This means that a multi-byte value is stored in memory with its
+    least significant byte first.
+    For example, the address 0x000FF730 which is our ESP is represented
+    as the following sequence of bytes in little-endian order:
+    <pre>30 F7 0F 00</pre>
+
+    This representation matters when an address is supplied through
+    an input mechanism that processes data as a null terminated
+    string. In such a context, a null byte 0x00 may
+    terminate the string or cause subsequent bytes to be omitted,
+    depending on how the application handles the input.
+    To understand which instruction addresses may be suitable for
+    further testing, I examined the modules loaded into the process
+    and their associated memory protection characteristics.
+    In particular, I considered whether address randomisation,
+    executable memory restrictions, and module relocation could
+    affect the reliability of a potential control-flow redirection.
+
+    The relevant protections include Address Space Layout
+    Randomisation (ASLR), Data Execution Prevention (DEP/NX), and
+    image relocation behaviour, which is associated with the
+    Rebase. Using mona plugins retrieved the following modules and their memory related properties:
+  </p>
+  <img class="fuzz_invalid" src="/static/stackBufferOverflowWithEipOverwrite/mona_modules.png" />
+
+
+
+</section>`,T=t=>{let n=t.split(" ").length;return console.log(n),Math.trunc(n/200)},h=(t,e,n)=>`
     <div>
         <h3 class="title">${t}</h3>
         <div class="clock-style">
             <img class="clock" src=${e} alt="Read Time"/>
-            <span class="read-time">${T(i)} minutes read</span>
+            <span class="read-time">${T(n)} minutes read</span>
         </div>
         <div>
-            ${i}
+            ${n}
         </div>
     </div>
-  `;class c{route;rootRoute="/";ethicalHackingNotesRoute="/ethical-hacking-notes";networkingBasicsRoute="/networking-basics";reverseEngineeringRoute="/reverse-engineering";welcomeToMyCyberSecurityPathRoute="/welcome-to-my-cybersecurity";aboutRoute="/about";pgpRoute="/pgp";stackBufferOverflowRoute="/stack-buffer-overflow";strlenInCRoute="/strlenInC";instagramReelDownloaderRoute="/instagramReelDownloader";stackBufferOverFlowWithEIPOverwrite="/stackBufferOverFlowWithEIPOverwrite";constructor(e){this.route=e}navigateTo(){if(history.pushState({},"",this.route),this.route==this.rootRoute){document.getElementById("remove-post-if-not-on-route").style.display="block",document.getElementById("filter-hide").style.display="flex",document.getElementById("search").style.display="flex",document.getElementById("post").innerHTML=y();return}if(!(this.route==this.ethicalHackingNotesRoute&&window.location.pathname==this.route)&&!(this.route==this.networkingBasicsRoute&&window.location.pathname==this.route)&&!(this.route==this.reverseEngineeringRoute&&window.location.pathname==this.route)){if(this.route==this.welcomeToMyCyberSecurityPathRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,v);break}return}if(this.route==this.aboutRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=E;return}if(this.route==this.pgpRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=O;return}if(this.route==this.stackBufferOverflowRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,b);break}return}if(this.route==this.strlenInCRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,k);break}return}if(this.route==this.instagramReelDownloaderRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,I);break}return}if(this.route==this.stackBufferOverFlowWithEIPOverwrite&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<n.length;e++)if("/".concat(n[e].route)==this.route){document.getElementById("post").innerHTML=h(n[e].title,n[e].clockImage,B);break}return}}}}const u=new c("/"),C=new c("/ethical-hacking-notes"),R=new c("/networking-basics"),x=new c("/reverse-engineering"),L=new c("/welcome-to-my-cybersecurity"),P=new c("/about"),S=new c("/pgp"),A=new c("/stack-buffer-overflow"),M=new c("/strlenInC"),H=new c("/instagramReelDownloader"),F=new c("/stackBufferOverFlowWithEIPOverwrite"),l={userName:"Fallen Saint",description:"Software Engineer, Red-Team, Security Enginner",profile:"/assets/userprofile.jpeg",location:"UK",locationImage:"/assets/pin.png",bitcoinAddress:"bc1quw479na2ld27rrlkpc0cxutcszddp5nva3ev0n",bitcoinAddressImage:"/assets/bitcoin.png",discord:"lahashcon",discordImage:"/assets/discord.png",post:"Posts",navigationList:[{title:"about",route:"/about"},{title:"PGP",route:"/pgp"}]},p={filter:{filter:"Filter",sort:["newest","oldest"]}},n=[{title:"Stack based buffer OverFlow with EIP overwrite",description:"Understanding stack based buffer overflow properly with a vulnerable application",keyword:"Windows XP, Stack Buffer Overflow, x86, Assembly",date:new Date("October 20 2026 22:17:40"),clockImage:"/assets/clock.png",route:"stackBufferOverFlowWithEIPOverwrite",content:B},{title:"Instagram Reels Downloader",description:"Tool to donwload instagram reels without the embedded watermark",keyword:"NodeJS, JavaScript, Instagram, ",date:new Date("September 20 2026 19:01:07"),clockImage:"/assets/clock.png",route:"instagramReelDownloader",content:I},{title:"strlen() function",description:"Implementing the strlen() function in C",keyword:"strlen(), string, function",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"strlenInC",content:k},{title:"StackBuffer Overflow",description:"Comphrensive detail about StackBuffer Overflow",keyword:"StackBuffer, Overflow",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"stack-buffer-overflow",content:b},{title:"Welcome to my CyberSecurity Path",description:"An introduction to my CyberSecurity Path",keyword:"CyberSecurity, Malware, Networking",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"welcome-to-my-cybersecurity",content:v}],s=[{title:"Ethical Hacking Notes",variable:C},{title:"Networking Basics",variable:R},{title:"Reverse Engineering",variable:x},{title:"Welcome to my CyberSecurity Path",variable:L},{title:"StackBuffer Overflow",variable:A},{title:"strlen() function",variable:M},{title:"Instagram Reels Downloader",variable:H},{title:"Stack based buffer OverFlow with EIP overwrite",variable:F}],m=[{title:"about",variable:P},{title:"PGP",variable:S}],y=(t=n)=>`
+  `;class c{route;rootRoute="/";ethicalHackingNotesRoute="/ethical-hacking-notes";networkingBasicsRoute="/networking-basics";reverseEngineeringRoute="/reverse-engineering";welcomeToMyCyberSecurityPathRoute="/welcome-to-my-cybersecurity";aboutRoute="/about";pgpRoute="/pgp";stackBufferOverflowRoute="/stack-buffer-overflow";strlenInCRoute="/strlenInC";instagramReelDownloaderRoute="/instagramReelDownloader";stackBufferOverFlowWithEIPOverwrite="/stackBufferOverFlowWithEIPOverwrite";constructor(e){this.route=e}navigateTo(){if(history.pushState({},"",this.route),this.route==this.rootRoute){document.getElementById("remove-post-if-not-on-route").style.display="block",document.getElementById("filter-hide").style.display="flex",document.getElementById("search").style.display="flex",document.getElementById("post").innerHTML=v();return}if(!(this.route==this.ethicalHackingNotesRoute&&window.location.pathname==this.route)&&!(this.route==this.networkingBasicsRoute&&window.location.pathname==this.route)&&!(this.route==this.reverseEngineeringRoute&&window.location.pathname==this.route)){if(this.route==this.welcomeToMyCyberSecurityPathRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<i.length;e++)if("/".concat(i[e].route)==this.route){document.getElementById("post").innerHTML=h(i[e].title,i[e].clockImage,y);break}return}if(this.route==this.aboutRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=B;return}if(this.route==this.pgpRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none",document.querySelector("#post").innerHTML=x;return}if(this.route==this.stackBufferOverflowRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<i.length;e++)if("/".concat(i[e].route)==this.route){document.getElementById("post").innerHTML=h(i[e].title,i[e].clockImage,b);break}return}if(this.route==this.strlenInCRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<i.length;e++)if("/".concat(i[e].route)==this.route){document.getElementById("post").innerHTML=h(i[e].title,i[e].clockImage,k);break}return}if(this.route==this.instagramReelDownloaderRoute&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<i.length;e++)if("/".concat(i[e].route)==this.route){document.getElementById("post").innerHTML=h(i[e].title,i[e].clockImage,I);break}return}if(this.route==this.stackBufferOverFlowWithEIPOverwrite&&window.location.pathname==this.route){document.getElementById("remove-post-if-not-on-route").style.display="none",document.getElementById("filter-hide").style.display="none",document.getElementById("search").style.display="none";for(let e=0;e<i.length;e++)if("/".concat(i[e].route)==this.route){document.getElementById("post").innerHTML=h(i[e].title,i[e].clockImage,E);break}return}}}}const p=new c("/"),O=new c("/ethical-hacking-notes"),R=new c("/networking-basics"),P=new c("/reverse-engineering"),C=new c("/welcome-to-my-cybersecurity"),L=new c("/about"),S=new c("/pgp"),A=new c("/stack-buffer-overflow"),M=new c("/strlenInC"),F=new c("/instagramReelDownloader"),H=new c("/stackBufferOverFlowWithEIPOverwrite"),l={userName:"Fallen Saint",description:"Software Engineer, Red-Team, Security Enginner",profile:"/assets/userprofile.jpeg",location:"UK",locationImage:"/assets/pin.png",bitcoinAddress:"bc1quw479na2ld27rrlkpc0cxutcszddp5nva3ev0n",bitcoinAddressImage:"/assets/bitcoin.png",discord:"lahashcon",discordImage:"/assets/discord.png",post:"Posts",navigationList:[{title:"about",route:"/about"},{title:"PGP",route:"/pgp"}]},u={filter:{filter:"Filter",sort:["newest","oldest"]}},i=[{title:"Stack based buffer OverFlow with EIP overwrite",description:"Understanding stack based buffer overflow properly with a vulnerable application",keyword:"Windows XP, Stack Buffer Overflow, x86, Assembly",date:new Date("October 20 2026 22:17:40"),clockImage:"/assets/clock.png",route:"stackBufferOverFlowWithEIPOverwrite",content:E},{title:"Instagram Reels Downloader",description:"Tool to donwload instagram reels without the embedded watermark",keyword:"NodeJS, JavaScript, Instagram, ",date:new Date("September 20 2026 19:01:07"),clockImage:"/assets/clock.png",route:"instagramReelDownloader",content:I},{title:"strlen() function",description:"Implementing the strlen() function in C",keyword:"strlen(), string, function",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"strlenInC",content:k},{title:"StackBuffer Overflow",description:"Comphrensive detail about StackBuffer Overflow",keyword:"StackBuffer, Overflow",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"stack-buffer-overflow",content:b},{title:"Welcome to my CyberSecurity Path",description:"An introduction to my CyberSecurity Path",keyword:"CyberSecurity, Malware, Networking",date:new Date("September 19, 2026 21:03:05"),clockImage:"/assets/clock.png",route:"welcome-to-my-cybersecurity",content:y}],s=[{title:"Ethical Hacking Notes",variable:O},{title:"Networking Basics",variable:R},{title:"Reverse Engineering",variable:P},{title:"Welcome to my CyberSecurity Path",variable:C},{title:"StackBuffer Overflow",variable:A},{title:"strlen() function",variable:M},{title:"Instagram Reels Downloader",variable:F},{title:"Stack based buffer OverFlow with EIP overwrite",variable:H}],m=[{title:"about",variable:L},{title:"PGP",variable:S}],v=(t=i)=>`
     ${t.map(e=>`
             <div class="repo">
                 <h3 class="title">${e.title}</h3>
@@ -510,7 +630,7 @@ Below is an example of what the current stack frame of an executing function loo
                 <span class="date">${e.date}</span>
             </div>
         `).join("")}
-    `,W=(t,e)=>{e=="oldest"&&(t=t.sort((a,o)=>a.date?.getTime()-o.date?.getTime())),e=="newest"&&(t=t.sort((a,o)=>o.date?.getTime()-a.date?.getTime())),document.getElementById("post").innerHTML=y();const i=document.querySelectorAll(".title");for(let a=0;a<i.length;a++)for(let o=0;o<n.length;o++)if(i[a].innerHTML==n[o].title){i[a].addEventListener("click",()=>{for(let r=0;r<s.length;r++)if(n[o].title==s[r].title){s[r].variable.navigateTo();break}});break}};let g;const j=(t,e)=>{g&&clearTimeout(g),g=setTimeout(()=>{let i=e.filter(a=>{if(a.title?.toLowerCase()?.search(t.toLowerCase())>=0||a.description?.toLowerCase()?.search(t.toLowerCase())>=0||a.keyword?.toLowerCase()?.search(t.toLowerCase())>=0||a.date?.toString().toLowerCase()?.search(t.toLowerCase())>=0)return a});if(i.length==0)document.getElementById("post").innerHTML="<h1>No Results Found</h1>";else{document.getElementById("post").innerHTML=y(i);const a=document.querySelectorAll(".title");console.log(a);for(let o=0;o<a.length;o++)for(let r=0;r<n.length;r++)if(a[o].innerHTML==n[r].title){a[o].addEventListener("click",()=>{for(let d=0;d<s.length;d++)if(n[r].title==s[d].title){s[d].variable.navigateTo();break}});break}}},250)},z=()=>`
+    `,W=(t,e)=>{e=="oldest"&&(t=t.sort((o,a)=>o.date?.getTime()-a.date?.getTime())),e=="newest"&&(t=t.sort((o,a)=>a.date?.getTime()-o.date?.getTime())),document.getElementById("post").innerHTML=v();const n=document.querySelectorAll(".title");for(let o=0;o<n.length;o++)for(let a=0;a<i.length;a++)if(n[o].innerHTML==i[a].title){n[o].addEventListener("click",()=>{for(let r=0;r<s.length;r++)if(i[a].title==s[r].title){s[r].variable.navigateTo();break}});break}};let f;const z=(t,e)=>{f&&clearTimeout(f),f=setTimeout(()=>{let n=e.filter(o=>{if(o.title?.toLowerCase()?.search(t.toLowerCase())>=0||o.description?.toLowerCase()?.search(t.toLowerCase())>=0||o.keyword?.toLowerCase()?.search(t.toLowerCase())>=0||o.date?.toString().toLowerCase()?.search(t.toLowerCase())>=0)return o});if(n.length==0)document.getElementById("post").innerHTML="<h1>No Results Found</h1>";else{document.getElementById("post").innerHTML=v(n);const o=document.querySelectorAll(".title");console.log(o);for(let a=0;a<o.length;a++)for(let r=0;r<i.length;r++)if(o[a].innerHTML==i[r].title){o[a].addEventListener("click",()=>{for(let d=0;d<s.length;d++)if(i[r].title==s[d].title){s[d].variable.navigateTo();break}});break}}},250)},_=()=>`
     <header class="navbar">
         <div class="nav-left">
             <span class="logo">${l.userName}</span>
@@ -525,7 +645,7 @@ Below is an example of what the current stack frame of an executing function loo
             </div>
         </div>
     </header>
-`,q=()=>`
+`,j=()=>`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -536,7 +656,7 @@ Below is an example of what the current stack frame of an executing function loo
 <body>
 
     <!-- Top Navigation Bar -->
-    ${z()}
+    ${_()}
 
     <!-- Main Layout -->
     <main class="container">
@@ -584,10 +704,10 @@ Below is an example of what the current stack frame of an executing function loo
         <div class="flex-post-and-filter">
             <h2 id="remove-post-if-not-on-route">${l.post}</h2>
             <div class="flex-post-and-filter" id="filter-hide">
-              <h2>${p.filter?.filter}</h2>
+              <h2>${u.filter?.filter}</h2>
               <select name="filter" id="filter">
-                <option value=${p.filter?.sort[0]}>${p.filter?.sort[0]}</option>
-                <option value=${p.filter?.sort[1]}>${p.filter?.sort[1]}</option>
+                <option value=${u.filter?.sort[0]}>${u.filter?.sort[0]}</option>
+                <option value=${u.filter?.sort[1]}>${u.filter?.sort[1]}</option>
               </select>
               </div>
         </div>
@@ -601,4 +721,4 @@ Below is an example of what the current stack frame of an executing function loo
 </body>
 </html>
 
-`;document.querySelector("#app").innerHTML=q();u.navigateTo();document.getElementById("filter")?.addEventListener("change",t=>{const e=t.target;W(n,e.value)});document.getElementById("search")?.addEventListener("input",t=>{console.log("Change");const e=t.target;j(e.value,n)});document.querySelector(".discord-style").addEventListener("click",()=>{window.open("https://discord.com/channels/@me","_blank")});const f=document.querySelectorAll(".nav-item");for(let t=0;t<f.length;t++)for(let e=0;e<l.navigationList.length;e++)if(f[t].innerHTML==l.navigationList[e].title){f[t].addEventListener("click",()=>{for(let i=0;i<m.length;i++)if(l.navigationList[e].title==m[i].title){m[i].variable.navigateTo();break}});break}document.querySelector(".logo")?.addEventListener("click",()=>{u.navigateTo();const t=document.querySelectorAll(".title");for(let e=0;e<t.length;e++)for(let i=0;i<n.length;i++)if(t[e].innerHTML==n[i].title){t[e].addEventListener("click",()=>{for(let a=0;a<s.length;a++)if(n[i].title==s[a].title){s[a].variable.navigateTo();break}});break}});window.addEventListener("popstate",()=>{window.location.pathname=="/"&&u.navigateTo();for(let t=0;t<n.length;t++){if(window.location.pathname=="/"){u.navigateTo();const e=document.querySelectorAll(".title");for(let i=0;i<e.length;i++)for(let a=0;a<n.length;a++)if(e[i].innerHTML==n[a].title){e[i].addEventListener("click",()=>{for(let o=0;o<s.length;o++)if(n[a].title==s[o].title){s[o].variable.navigateTo();break}});break}}else if(window.location.pathname=="/".concat(n[t].route)){for(let e=0;e<s.length;e++)if(n[t].title==s[e].title){s[e].variable.navigateTo();break}}break}});const w=document.querySelectorAll(".title");for(let t=0;t<w.length;t++)for(let e=0;e<n.length;e++)if(w[t].innerHTML==n[e].title){w[t].addEventListener("click",()=>{for(let i=0;i<s.length;i++)if(n[e].title==s[i].title){s[i].variable.navigateTo();break}});break}
+`;document.querySelector("#app").innerHTML=j();p.navigateTo();document.getElementById("filter")?.addEventListener("change",t=>{const e=t.target;W(i,e.value)});document.getElementById("search")?.addEventListener("input",t=>{console.log("Change");const e=t.target;z(e.value,i)});document.querySelector(".discord-style").addEventListener("click",()=>{window.open("https://discord.com/channels/@me","_blank")});const g=document.querySelectorAll(".nav-item");for(let t=0;t<g.length;t++)for(let e=0;e<l.navigationList.length;e++)if(g[t].innerHTML==l.navigationList[e].title){g[t].addEventListener("click",()=>{for(let n=0;n<m.length;n++)if(l.navigationList[e].title==m[n].title){m[n].variable.navigateTo();break}});break}document.querySelector(".logo")?.addEventListener("click",()=>{p.navigateTo();const t=document.querySelectorAll(".title");for(let e=0;e<t.length;e++)for(let n=0;n<i.length;n++)if(t[e].innerHTML==i[n].title){t[e].addEventListener("click",()=>{for(let o=0;o<s.length;o++)if(i[n].title==s[o].title){s[o].variable.navigateTo();break}});break}});window.addEventListener("popstate",()=>{window.location.pathname=="/"&&p.navigateTo();for(let t=0;t<i.length;t++){if(window.location.pathname=="/"){p.navigateTo();const e=document.querySelectorAll(".title");for(let n=0;n<e.length;n++)for(let o=0;o<i.length;o++)if(e[n].innerHTML==i[o].title){e[n].addEventListener("click",()=>{for(let a=0;a<s.length;a++)if(i[o].title==s[a].title){s[a].variable.navigateTo();break}});break}}else if(window.location.pathname=="/".concat(i[t].route)){for(let e=0;e<s.length;e++)if(i[t].title==s[e].title){s[e].variable.navigateTo();break}}break}});const w=document.querySelectorAll(".title");for(let t=0;t<w.length;t++)for(let e=0;e<i.length;e++)if(w[t].innerHTML==i[e].title){w[t].addEventListener("click",()=>{for(let n=0;n<s.length;n++)if(i[e].title==s[n].title){s[n].variable.navigateTo();break}});break}
